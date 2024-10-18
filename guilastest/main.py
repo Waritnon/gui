@@ -23,9 +23,9 @@ class HealthMonitorApp:
         self.window.configure(bg="#525050")
 
 
-        self.cap = cv2.VideoCapture(0)
-        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1024)
-        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
+        # self.cap = cv2.VideoCapture(0)
+        # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1024)
+        # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
 
 
         bigfont = tkFont.Font(family="Helvetica", size=20)
@@ -47,7 +47,8 @@ class HealthMonitorApp:
         # Database connection
         self.conn = None
         self.cursor = None
-        self.db_name = 'your_database.db'  # Change to your SQLite database name
+        #self.db_name = 'your_database.db'  # Change to your SQLite database name 
+        self.db_name = "/home/pannoi_db.db"
         self.connect_db()
 
         self.image_background = None
@@ -145,6 +146,12 @@ class HealthMonitorApp:
         self.emotion_image = self.canvas.create_image(514, 302, image=self.image_face1)
         self.present1 = self.canvas.create_image(914, 480, image=self.image_present)
         self.present2 = self.canvas.create_image(110, 480, image=self.image_present)
+        self.pr_text = self.canvas.create_text(845, 310, text=self.pr, font=("Helvetica", 28), fill="black",state="hidden")
+        self.spo2_text = self.canvas.create_text(845, 367, text=self.dia, font=("Helvetica", 28), fill="black",state="hidden")
+        self.temp_text = self.canvas.create_text(845, 424, text=self.temp, font=("Helvetica", 28), fill="black",state="hidden")
+        self.sys_text = self.canvas.create_text(845, 481, text=self.sys, font=("Helvetica", 28), fill="black",state="hidden")
+        self.dia_text = self.canvas.create_text(845, 538, text=self.dia, font=("Helvetica", 28), fill="black",state="hidden")
+
         self.canvas.itemconfig(self.present1, state="hidden")
         self.canvas.itemconfig(self.present2, state="hidden")
 
@@ -217,7 +224,11 @@ class HealthMonitorApp:
         self.vitalpage_state = True
         self.window.after(1, self.canvas.itemconfig(self.emotion_image, state="hidden"))
         self.create_backbutton()
-        
+        self.window.after(1, self.canvas.itemconfig(self.pr_text, state="normal"))
+        self.window.after(1, self.canvas.itemconfig(self.spo2_text, state="normal"))
+        self.window.after(1, self.canvas.itemconfig(self.temp_text, state="normal"))
+        self.window.after(1, self.canvas.itemconfig(self.sys_text, state="normal"))
+        self.window.after(1, self.canvas.itemconfig(self.dia_text, state="normal"))
         # Show table name combobox
         self.clear_info_frame()  
         self.show_table_buttons()
@@ -230,7 +241,7 @@ class HealthMonitorApp:
         self.window.after(1, self.canvas.itemconfig(self.background, image=self.image_select_room))
         self.clear_info_frame()  
         self.create_backbutton()
-
+        
         try:
             # Fetch all table names from the database
             self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -243,13 +254,21 @@ class HealthMonitorApp:
                 self.table_combobox = ttk.Combobox(self.window, values=table_list, font=("Helvetica", 26), state="readonly",width= 14)
                 self.table_combobox.place(x=166, y=158)  # Adjust placement as needed
                 self.table_combobox.set("Select a room")  # Set the default prompt text
-                
-
 
                 # Create an action for the combobox selection
                 def on_table_select(event):
                     selected_table = self.table_combobox.get()
                     self.table_name = selected_table
+                    self.pr = 0
+                    self.spo2 = 0
+                    self.temp = 0
+                    self.sys = 0
+                    self.dia = 0
+                    self.canvas.itemconfig(self.pr_text, text=self.pr)
+                    self.canvas.itemconfig(self.spo2_text, text=self.spo2)
+                    self.canvas.itemconfig(self.temp_text, text=self.temp)
+                    self.canvas.itemconfig(self.sys_text, text=self.sys)
+                    self.canvas.itemconfig(self.dia_text, text=self.dia)
                     # Enable and update date and time comboboxes with relevant options
                     self.show_date_buttons(initial=False)
                     self.show_time_buttons(initial=False)
@@ -366,6 +385,11 @@ class HealthMonitorApp:
                 for row in results:
                     result_text += f"PR: {row[0]}, SpO2: {row[1]}, Temp: {row[2]}, Sys: {row[3]}, Dia: {row[4]}\n"
                 self.pr, self.spo2, self.temp, self.sys, self.dia = row
+                self.canvas.itemconfig(self.pr_text, text=self.pr)
+                self.canvas.itemconfig(self.spo2_text, text=self.spo2)
+                self.canvas.itemconfig(self.temp_text, text=self.temp)
+                self.canvas.itemconfig(self.sys_text, text=self.sys)
+                self.canvas.itemconfig(self.dia_text, text=self.dia)
                 print(result_text)
         except sqlite3.Error as e:
             print(f"Error fetching values for time {time} on date {date}: {e}")
@@ -388,6 +412,11 @@ class HealthMonitorApp:
         self.window.after(1, self.canvas.itemconfig(self.background, image=self.image_main))
         self.window.after(1, self.canvas.itemconfig(self.emotion_image, state="normal"))
         self.window.after(1, self.create_capbutton)
+        self.window.after(1, self.canvas.itemconfig(self.pr_text, state="hidden"))
+        self.window.after(1, self.canvas.itemconfig(self.spo2_text, state="hidden"))
+        self.window.after(1, self.canvas.itemconfig(self.temp_text, state="hidden"))
+        self.window.after(1, self.canvas.itemconfig(self.sys_text, state="hidden"))
+        self.window.after(1, self.canvas.itemconfig(self.dia_text, state="hidden"))
         self.update_emotion()         
 
     # Exit function
