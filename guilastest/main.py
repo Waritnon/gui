@@ -224,11 +224,16 @@ class HealthMonitorApp:
         self.vitalpage_state = True
         self.window.after(1, self.canvas.itemconfig(self.emotion_image, state="hidden"))
         self.create_backbutton()
-        self.window.after(1, self.canvas.itemconfig(self.pr_text, state="normal"))
-        self.window.after(1, self.canvas.itemconfig(self.spo2_text, state="normal"))
-        self.window.after(1, self.canvas.itemconfig(self.temp_text, state="normal"))
-        self.window.after(1, self.canvas.itemconfig(self.sys_text, state="normal"))
-        self.window.after(1, self.canvas.itemconfig(self.dia_text, state="normal"))
+        self.pr = 0
+        self.spo2 = 0
+        self.temp = 0
+        self.sys = 0
+        self.dia = 0
+        self.window.after(1, self.canvas.itemconfig(self.pr_text,text = self.pr, state="normal"))
+        self.window.after(1, self.canvas.itemconfig(self.spo2_text,text = self.spo2, state="normal"))
+        self.window.after(1, self.canvas.itemconfig(self.temp_text,text = self.temp,  state="normal"))
+        self.window.after(1, self.canvas.itemconfig(self.sys_text,text = self.sys,  state="normal"))
+        self.window.after(1, self.canvas.itemconfig(self.dia_text,text = self.dia,  state="normal"))
         # Show table name combobox
         self.clear_info_frame()  
         self.show_table_buttons()
