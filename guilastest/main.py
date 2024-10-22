@@ -104,8 +104,8 @@ class HealthMonitorApp:
     
     def command3(self, event):
         if(self.present == False):
-            self.window.after(1, self.canvas.itemconfig(self.present1, state="normal"))
-            self.window.after(1, self.canvas.itemconfig(self.present2, state="normal"))
+            # self.window.after(1, self.canvas.itemconfig(self.present1, state="normal"))
+            # self.window.after(1, self.canvas.itemconfig(self.present2, state="normal"))
             self.present = True
         self.audio = "item.wav"
         threading.Thread(target=self.play).start()
@@ -188,13 +188,13 @@ class HealthMonitorApp:
             else:
                 self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face2))
                 self.current_image_index = 0
-            if(self.presentstate == True):
-                if(self.current_image_index%10 == 0):
-                    self.canvas.itemconfig(self.present1,state="hidden")
-                    self.canvas.itemconfig(self.present2,state="hidden")
-                else: 
-                    self.canvas.itemconfig(self.present1,state="normal")
-                    self.canvas.itemconfig(self.present2,state="normal")
+            # if(self.presentstate == True):
+                # if(self.current_image_index%10 == 0):
+                #     self.canvas.itemconfig(self.present1,state="hidden")
+                #     self.canvas.itemconfig(self.present2,state="hidden")
+                # else: 
+                #     self.canvas.itemconfig(self.present1,state="normal")
+                #     self.canvas.itemconfig(self.present2,state="normal")
             self.window.after(50, self.update_emotion)
 
 
