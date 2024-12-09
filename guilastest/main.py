@@ -88,21 +88,21 @@ class HealthMonitorApp:
             print(f"Error connecting to database: {e}")
             raise
 
-    def command1(self, event):
+    def command1(self):
         if(self.present == True):
             self.window.after(1, self.canvas.itemconfig(self.present1, state="hidden"))
             self.window.after(1, self.canvas.itemconfig(self.present2, state="hidden"))
         self.audio = "entry.wav"
         threading.Thread(target=self.play).start()
 
-    def command2(self, event):
+    def command2(self):
         if(self.present == True):
             self.window.after(1, self.canvas.itemconfig(self.present1, state="hidden"))
             self.window.after(1, self.canvas.itemconfig(self.present2, state="hidden"))
         self.audio = "gone.wav"
         threading.Thread(target=self.play).start()
     
-    def command3(self, event):
+    def command3(self):
         if(self.present == False):
             # self.window.after(1, self.canvas.itemconfig(self.present1, state="normal"))
             # self.window.after(1, self.canvas.itemconfig(self.present2, state="normal"))
@@ -137,8 +137,8 @@ class HealthMonitorApp:
     ###################################################################################################################################################
     def load_images(self):
         self.image_main = PhotoImage(file=self.relative_to_assets("main.png"))
-        self.image_face1 = PhotoImage(file=self.relative_to_assets("original.png"))
-        self.image_face2 = PhotoImage(file=self.relative_to_assets("blink.png"))
+        self.image_face1 = PhotoImage(file=self.relative_to_assets("newface1.png"))
+        self.image_face2 = PhotoImage(file=self.relative_to_assets("newface2.png"))
         self.image_present = PhotoImage(file=self.relative_to_assets("present.png"))
         self.image_select_room= PhotoImage(file=self.relative_to_assets("roomselect.png"))
         self.image_menu= PhotoImage(file=self.relative_to_assets("menu.png"))
@@ -197,9 +197,36 @@ class HealthMonitorApp:
                 #     self.canvas.itemconfig(self.present2,state="normal")
             self.window.after(50, self.update_emotion)
 
+    def test1(self):
+        self.cap_button = Button( 
+            text = 'test1',
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.command1,
+            relief="flat"
+        )
+        self.cap_button.place(x=840.0, y=300, width=100, height=50)
+    def test2(self):
+        self.cap_button = Button(
+            text = 'test2',
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.command2,
+            relief="flat"
+        )
+        self.cap_button.place(x=840.0, y=400, width=100, height=50)
+    def test3(self):
+        self.cap_button = Button(
+            text = 'test3',
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.command3,
+            relief="flat"
+        )
+        self.cap_button.place(x=840.0, y=500, width=100, height=50)
 
     def create_capbutton(self):
-        self.capbutton_image = PhotoImage(file=self.relative_to_assets("cap.png"))
+        self.capbutton_image = PhotoImage(file=self.relative_to_assets("newcap.png"))
         self.cap_button = Button(
             image=self.capbutton_image,  
             borderwidth=0,
@@ -207,7 +234,7 @@ class HealthMonitorApp:
             command=self.open_menu,
             relief="flat"
         )
-        self.cap_button.place(x=640.0, y=15, width=380.0, height=220.0)
+        self.cap_button.place(x=640.0, y=5, width=337.0, height=195.0)
     
     def create_historybutton(self):
         self.historybutton_image = PhotoImage(file=self.relative_to_assets("vitalbutton.png"))
@@ -250,6 +277,9 @@ class HealthMonitorApp:
         self.create_backbutton()
         self.create_historybutton()
         self.create_callbutton()
+        self.test1()
+        self.test2()
+        self.test3()
         self.window.after(1, lambda:self.canvas.itemconfig(self.background, image=self.image_menu))
 
     def update_pass(self,num):
