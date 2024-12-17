@@ -62,6 +62,7 @@ class HealthMonitorApp:
         self.vitalpage_state = False
         self.table_name = None
         self.present = False
+        self.framestate = 'face1'
         self.pr = 0
         self.spo2 = 0
         self.sys = 0
@@ -137,9 +138,11 @@ class HealthMonitorApp:
     ###################################################################################################################################################
     def load_images(self):
         self.image_main = PhotoImage(file=self.relative_to_assets("main.png"))
-        self.image_face1 = PhotoImage(file=self.relative_to_assets("newface1.png"))
-        self.image_face2 = PhotoImage(file=self.relative_to_assets("newface2.png"))
-        self.image_present = PhotoImage(file=self.relative_to_assets("present.png"))
+        self.image_face1 = PhotoImage(file=self.relative_to_assets("frame1.png"))
+        self.image_face2 = PhotoImage(file=self.relative_to_assets("frame2.png"))
+        self.image_face3 = PhotoImage(file=self.relative_to_assets("frame3.png"))
+        self.image_face4 = PhotoImage(file=self.relative_to_assets("frame4.png"))
+        self.image_bink = PhotoImage(file=self.relative_to_assets("newface2.png"))
         self.image_select_room= PhotoImage(file=self.relative_to_assets("roomselect.png"))
         self.image_menu= PhotoImage(file=self.relative_to_assets("menu.png"))
         self.image_login= PhotoImage(file=self.relative_to_assets("login.png"))
@@ -150,8 +153,6 @@ class HealthMonitorApp:
     def create_widgets(self):
         self.background = self.canvas.create_image(514, 302, image=self.image_main)
         self.emotion_image = self.canvas.create_image(514, 302, image=self.image_face1)
-        self.present1 = self.canvas.create_image(914, 480, image=self.image_present)
-        self.present2 = self.canvas.create_image(110, 480, image=self.image_present)
         self.pr_text = self.canvas.create_text(845, 310, text=self.pr, font=("Helvetica", 32), fill="black",state="hidden")
         self.spo2_text = self.canvas.create_text(845, 391, text=self.dia, font=("Helvetica", 32), fill="black",state="hidden")
         self.sys_text = self.canvas.create_text(845, 462, text=self.sys, font=("Helvetica", 32), fill="black",state="hidden")
@@ -164,9 +165,6 @@ class HealthMonitorApp:
         self.d = self.canvas.create_text(320, 300, text='X', font=("Helvetica", 80), fill="black",state="hidden")
         self.e = self.canvas.create_text(400, 300, text='X', font=("Helvetica", 80), fill="black",state="hidden")
         self.f = self.canvas.create_text(480, 300, text='X', font=("Helvetica", 80), fill="black",state="hidden")
-
-        self.canvas.itemconfig(self.present1, state="hidden")
-        self.canvas.itemconfig(self.present2, state="hidden")
 
     # First start function
     ###################################################################################################################################################
@@ -182,19 +180,33 @@ class HealthMonitorApp:
 
     def update_emotion(self):
         if self.vitalpage_state == False:
-            if self.current_image_index <= 40:
-                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face1))
-                self.current_image_index += 1
-            else:
+            if self.framestate == 'face1':
                 self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face2))
+            elif self.framestate == 'face2':
+                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face1))
+            elif self.framestate == 'face3':
+                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face4))
+            elif self.framestate == 'face4':
+                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face3))
+
+            if self.current_image_index < 40:
+                if self.current_image_index%5 == 0:
+                    if self.framestate == 'face1':
+                        self.framestate = 'face2'
+                    elif self.framestate == 'face2':
+                        self.framestate = 'face1'
+            elif self.current_image_index < 80:
+                if self.current_image_index%5 == 0:
+                    if self.framestate == 'face1' or self.framestate == 'face2'or self.framestate == 'face4':
+                        self.framestate = 'face3'
+                    elif self.framestate == 'face3':
+                        self.framestate = 'face4'
+
+            else:
+                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_bink))
                 self.current_image_index = 0
-            # if(self.presentstate == True):
-                # if(self.current_image_index%10 == 0):
-                #     self.canvas.itemconfig(self.present1,state="hidden")
-                #     self.canvas.itemconfig(self.present2,state="hidden")
-                # else: 
-                #     self.canvas.itemconfig(self.present1,state="normal")
-                #     self.canvas.itemconfig(self.present2,state="normal")
+                self.framestate = 'face1'
+            self.current_image_index += 1
             self.window.after(50, self.update_emotion)
 
     def test1(self):
