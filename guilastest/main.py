@@ -61,7 +61,7 @@ class HealthMonitorApp:
         self.nextsound = False
         self.vitalpage_state = False
         self.table_name = None
-        self.present = False
+        self.starstate = True
         self.framestate = 'face1'
         self.pr = 0
         self.spo2 = 0
@@ -90,16 +90,10 @@ class HealthMonitorApp:
             raise
 
     def command1(self):
-        if(self.present == True):
-            self.window.after(1, self.canvas.itemconfig(self.present1, state="hidden"))
-            self.window.after(1, self.canvas.itemconfig(self.present2, state="hidden"))
         self.audio = "entry.wav"
         threading.Thread(target=self.play).start()
 
     def command2(self):
-        if(self.present == True):
-            self.window.after(1, self.canvas.itemconfig(self.present1, state="hidden"))
-            self.window.after(1, self.canvas.itemconfig(self.present2, state="hidden"))
         self.audio = "gone.wav"
         threading.Thread(target=self.play).start()
     
@@ -138,11 +132,10 @@ class HealthMonitorApp:
     ###################################################################################################################################################
     def load_images(self):
         self.image_main = PhotoImage(file=self.relative_to_assets("main.png"))
-        self.image_face1 = PhotoImage(file=self.relative_to_assets("frame1.png"))
-        self.image_face2 = PhotoImage(file=self.relative_to_assets("frame2.png"))
-        self.image_face3 = PhotoImage(file=self.relative_to_assets("frame3.png"))
-        self.image_face4 = PhotoImage(file=self.relative_to_assets("frame4.png"))
-        self.image_bink = PhotoImage(file=self.relative_to_assets("newface2.png"))
+        self.image_face1 = PhotoImage(file=self.relative_to_assets("clear.png"))
+        self.image_face2 = PhotoImage(file=self.relative_to_assets("blink1.png"))
+        self.image_face3 = PhotoImage(file=self.relative_to_assets("blink2.png"))
+        self.image_star= PhotoImage(file=self.relative_to_assets("star.png"))
         self.image_select_room= PhotoImage(file=self.relative_to_assets("roomselect.png"))
         self.image_menu= PhotoImage(file=self.relative_to_assets("menu.png"))
         self.image_login= PhotoImage(file=self.relative_to_assets("login.png"))
@@ -153,6 +146,8 @@ class HealthMonitorApp:
     def create_widgets(self):
         self.background = self.canvas.create_image(514, 302, image=self.image_main)
         self.emotion_image = self.canvas.create_image(514, 302, image=self.image_face1)
+        self.star_left = self.canvas.create_image(80, 300, image=self.image_star)
+        self.star_right = self.canvas.create_image(950, 500, image=self.image_star)
         self.pr_text = self.canvas.create_text(845, 310, text=self.pr, font=("Helvetica", 32), fill="black",state="hidden")
         self.spo2_text = self.canvas.create_text(845, 391, text=self.dia, font=("Helvetica", 32), fill="black",state="hidden")
         self.sys_text = self.canvas.create_text(845, 462, text=self.sys, font=("Helvetica", 32), fill="black",state="hidden")
@@ -181,29 +176,34 @@ class HealthMonitorApp:
     def update_emotion(self):
         if self.vitalpage_state == False:
             if self.framestate == 'face1':
-                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face2))
-            elif self.framestate == 'face2':
                 self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face1))
+            elif self.framestate == 'face2':
+                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face2))
             elif self.framestate == 'face3':
-                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face4))
-            elif self.framestate == 'face4':
                 self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face3))
+            elif self.framestate == 'face4':
+                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face2))
+            if self.current_image_index%20 == 0:
+                if self.starstate == True:
+                    self.canvas.coords(self.star_left,80,300)
+                    self.canvas.coords(self.star_right,950, 500)
+                    self.starstate = False
+                else:
+                    self.canvas.coords(self.star_left,80,500)
+                    self.canvas.coords(self.star_right,950, 300)
+                    self.starstate = True
 
-            if self.current_image_index < 40:
-                if self.current_image_index%5 == 0:
+            if self.current_image_index > 25 and self.current_image_index < 30:
+                if self.current_image_index%1 == 0:
                     if self.framestate == 'face1':
                         self.framestate = 'face2'
                     elif self.framestate == 'face2':
-                        self.framestate = 'face1'
-            elif self.current_image_index < 80:
-                if self.current_image_index%5 == 0:
-                    if self.framestate == 'face1' or self.framestate == 'face2'or self.framestate == 'face4':
                         self.framestate = 'face3'
                     elif self.framestate == 'face3':
                         self.framestate = 'face4'
-
-            else:
-                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_bink))
+                    elif self.framestate == 'face4':
+                        self.framestate = 'face1'
+            elif self.current_image_index > 30:
                 self.current_image_index = 0
                 self.framestate = 'face1'
             self.current_image_index += 1
@@ -238,7 +238,7 @@ class HealthMonitorApp:
         self.cap_button.place(x=840.0, y=500, width=100, height=50)
 
     def create_capbutton(self):
-        self.capbutton_image = PhotoImage(file=self.relative_to_assets("newcap.png"))
+        self.capbutton_image = PhotoImage(file=self.relative_to_assets("pannoimenu.png"))
         self.cap_button = Button(
             image=self.capbutton_image,  
             borderwidth=0,
@@ -246,7 +246,7 @@ class HealthMonitorApp:
             command=self.open_menu,
             relief="flat"
         )
-        self.cap_button.place(x=640.0, y=5, width=337.0, height=195.0)
+        self.cap_button.place(x=290.0, y=30)
     
     def create_historybutton(self):
         self.historybutton_image = PhotoImage(file=self.relative_to_assets("vitalbutton.png"))
@@ -286,6 +286,8 @@ class HealthMonitorApp:
         self.pagestate = False
         self.vitalpage_state = True
         self.window.after(1, lambda:self.canvas.itemconfig(self.emotion_image, state="hidden"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.star_left, state="hidden"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.star_right, state="hidden"))
         self.create_backbutton()
         self.create_historybutton()
         self.create_callbutton()
@@ -471,11 +473,14 @@ class HealthMonitorApp:
         self.window.after(1, self.back_button.destroy())
         self.window.after(1, self.canvas.itemconfig(self.background, image=self.image_main))
         self.window.after(1, self.canvas.itemconfig(self.emotion_image, state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.star_left, state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.star_right, state="normal"))
         self.window.after(1, self.create_capbutton)
         self.window.after(1, self.canvas.itemconfig(self.pr_text, state="hidden"))
         self.window.after(1, self.canvas.itemconfig(self.spo2_text, state="hidden"))
         self.window.after(1, self.canvas.itemconfig(self.sys_text, state="hidden"))
         self.window.after(1, self.canvas.itemconfig(self.dia_text, state="hidden"))
+
         self.update_emotion()         
 
     def show_table_buttons(self):
