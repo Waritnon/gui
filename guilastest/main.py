@@ -7,14 +7,22 @@ import tkinter.font as tkFont
 import cv2
 from PIL import ImageTk, Image , ImageDraw
 import webview
+import rclpy
+import rclpy.node import Node
+from std_msgs.msg import String
 from tkinter import Tk
 
-
+class RosGui(Node):
+    def __init__(self):
+        super().__init__('ros_gui')
+        self.publisher_ = self.create_publisher(String, 'sound_command', 10)
 class HealthMonitorApp:
     # Init
     ###################################################################################################################################################
     
     def __init__(self):
+        rclpy.init(args=None)
+        self.ros = RosGui()
         self.audio_playing = False
         self.OUTPUT_PATH = Path(__file__).parent
         self.ASSETS_PATH = self.OUTPUT_PATH / Path('image') 
@@ -90,20 +98,13 @@ class HealthMonitorApp:
             raise
 
     def command1(self):
-        self.audio = "entry.wav"
-        threading.Thread(target=self.play).start()
+        self.ros.publisher_.publish(String(data="hello"))
 
     def command2(self):
-        self.audio = "gone.wav"
-        threading.Thread(target=self.play).start()
+        self.ros.publisher_.publish(String(data="item"))
     
     def command3(self):
-        if(self.present == False):
-            # self.window.after(1, self.canvas.itemconfig(self.present1, state="normal"))
-            # self.window.after(1, self.canvas.itemconfig(self.present2, state="normal"))
-            self.present = True
-        self.audio = "item.wav"
-        threading.Thread(target=self.play).start()
+        self.ros.publisher_.publish(String(data="gone"))
 
     def relative_to_assets(self, path: str) -> Path:
         return self.ASSETS_PATH / Path(path)
@@ -183,7 +184,7 @@ class HealthMonitorApp:
                 self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face3))
             elif self.framestate == 'face4':
                 self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face2))
-            if self.current_image_index%20 == 0:
+            if self.current_image_index%18 == 0:
                 if self.starstate == True:
                     self.canvas.coords(self.star_left,80,300)
                     self.canvas.coords(self.star_right,950, 500)
@@ -238,7 +239,7 @@ class HealthMonitorApp:
         self.cap_button.place(x=840.0, y=500, width=100, height=50)
 
     def create_capbutton(self):
-        self.capbutton_image = PhotoImage(file=self.relative_to_assets("pannoimenu.png"))
+        self.capbutton_image = PhotoImage(file=self.relative_to_assets("newmenu.png"))
         self.cap_button = Button(
             image=self.capbutton_image,  
             borderwidth=0,
@@ -246,7 +247,7 @@ class HealthMonitorApp:
             command=self.open_menu,
             relief="flat"
         )
-        self.cap_button.place(x=290.0, y=30)
+        self.cap_button.place(x=260.0, y=50)
     
     def create_historybutton(self):
         self.historybutton_image = PhotoImage(file=self.relative_to_assets("vitalbutton.png"))
