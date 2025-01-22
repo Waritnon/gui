@@ -7,9 +7,11 @@ import tkinter.font as tkFont
 import cv2
 from PIL import ImageTk, Image , ImageDraw
 import webview
+
 import rclpy
 import rclpy.node import Node
 from std_msgs.msg import String
+
 from tkinter import Tk
 
 class RosGui(Node):
@@ -101,10 +103,25 @@ class HealthMonitorApp:
         self.ros.publisher_.publish(String(data="hello"))
 
     def command2(self):
-        self.ros.publisher_.publish(String(data="item"))
+        self.ros.publisher_.publish(String(data="test2"))
     
     def command3(self):
+        self.ros.publisher_.publish(String(data="test3"))
+    
+    def command4(self):
+        self.ros.publisher_.publish(String(data="test4"))
+
+    def command5(self):
+        self.ros.publisher_.publish(String(data="test5"))
+    
+    def command6(self):
+        self.ros.publisher_.publish(String(data="entry"))
+
+    def command7(self):
         self.ros.publisher_.publish(String(data="gone"))
+    
+    def command8(self):
+        self.ros.publisher_.publish(String(data="way"))
 
     def relative_to_assets(self, path: str) -> Path:
         return self.ASSETS_PATH / Path(path)
@@ -212,31 +229,93 @@ class HealthMonitorApp:
 
     def test1(self):
         self.cap_button = Button( 
-            text = 'test1',
-            borderwidth=0,
-            highlightthickness=0,
+            text = 'HELLO',
+            borderwidth=2,
+            highlightthickness=2,
             command=self.command1,
-            relief="flat"
+            fg = "white",
+            bg = "purple",
+            relief="raised"
         )
-        self.cap_button.place(x=840.0, y=300, width=100, height=50)
+        self.cap_button.place(x=800.0, y=150, width=100, height=50)
     def test2(self):
         self.cap_button = Button(
-            text = 'test2',
-            borderwidth=0,
-            highlightthickness=0,
+            text = 'TEST2',
+            borderwidth=2,
+            highlightthickness=2,
             command=self.command2,
-            relief="flat"
+            fg = "white",
+            bg = "purple",
+            relief="raised"
         )
-        self.cap_button.place(x=840.0, y=400, width=100, height=50)
+        self.cap_button.place(x=800.0, y=250, width=100, height=50)
     def test3(self):
         self.cap_button = Button(
-            text = 'test3',
-            borderwidth=0,
-            highlightthickness=0,
+            text = 'TEST3',
+            borderwidth=2,
+            highlightthickness=2,
             command=self.command3,
-            relief="flat"
+            fg = "white",
+            bg = "purple",
+            relief="raised"
         )
-        self.cap_button.place(x=840.0, y=500, width=100, height=50)
+        self.cap_button.place(x=800.0, y=350, width=100, height=50)
+    
+    def test4(self):
+        self.cap_button = Button( 
+            text = 'TEST4',
+            borderwidth=2,
+            highlightthickness=2,
+            command=self.command4,
+            fg = "white",
+            bg = "purple",
+            relief="raised"
+        )
+        self.cap_button.place(x=800.0, y=450, width=100, height=50)
+    def test5(self):
+        self.cap_button = Button(
+            text = 'TEST5',
+            borderwidth=2,
+            highlightthickness=2,
+            command=self.command5,
+            fg = "white",
+            bg = "purple",
+            relief="raised"
+        )
+        self.cap_button.place(x=910.0, y=150, width=100, height=50)
+    def test6(self):
+        self.cap_button = Button(
+            text = 'ENTRY',
+            borderwidth=2,
+            highlightthickness=2,
+            command=self.command6,
+            fg = "white",
+            bg = "purple",
+            relief="raised"
+        )
+        self.cap_button.place(x=910.0, y=250, width=100, height=50)
+    def test7(self):
+        self.cap_button = Button(
+            text = 'GONE',
+            borderwidth=2,
+            highlightthickness=2,
+            command=self.command7,
+            fg = "white",
+            bg = "purple",
+            relief="raised"
+        )
+        self.cap_button.place(x=910.0, y=350, width=100, height=50)
+    def test8(self):
+        self.cap_button = Button(
+            text = 'WAY',
+            borderwidth=2,
+            highlightthickness=2,
+            command=self.command8,
+            fg = "white",
+            bg = "purple",
+            relief="raised"
+        )
+        self.cap_button.place(x=910.0, y=450, width=100, height=50)
 
     def create_capbutton(self):
         self.capbutton_image = PhotoImage(file=self.relative_to_assets("newmenu.png"))
