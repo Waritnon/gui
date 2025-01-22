@@ -9,7 +9,7 @@ from PIL import ImageTk, Image , ImageDraw
 import webview
 
 import rclpy
-import rclpy.node import Node
+from rclpy.node import Node
 from std_msgs.msg import String
 
 from tkinter import Tk
@@ -115,13 +115,19 @@ class HealthMonitorApp:
         self.ros.publisher_.publish(String(data="test5"))
     
     def command6(self):
-        self.ros.publisher_.publish(String(data="entry"))
+        self.ros.publisher_.publish(String(data="test6"))
 
     def command7(self):
-        self.ros.publisher_.publish(String(data="gone"))
+        self.ros.publisher_.publish(String(data="entry"))
     
     def command8(self):
+        self.ros.publisher_.publish(String(data="item"))
+    
+    def command9(self):
         self.ros.publisher_.publish(String(data="way"))
+    
+    def command10(self):
+        self.ros.publisher_.publish(String(data="gone"))
 
     def relative_to_assets(self, path: str) -> Path:
         return self.ASSETS_PATH / Path(path)
@@ -248,7 +254,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=800.0, y=250, width=100, height=50)
+        self.cap_button.place(x=800.0, y=230, width=100, height=50)
     def test3(self):
         self.cap_button = Button(
             text = 'TEST3',
@@ -259,7 +265,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=800.0, y=350, width=100, height=50)
+        self.cap_button.place(x=800.0, y=310, width=100, height=50)
     
     def test4(self):
         self.cap_button = Button( 
@@ -271,7 +277,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=800.0, y=450, width=100, height=50)
+        self.cap_button.place(x=800.0, y=390, width=100, height=50)
     def test5(self):
         self.cap_button = Button(
             text = 'TEST5',
@@ -282,10 +288,10 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=910.0, y=150, width=100, height=50)
+        self.cap_button.place(x=800.0, y=470, width=100, height=50)
     def test6(self):
         self.cap_button = Button(
-            text = 'ENTRY',
+            text = 'TEST6',
             borderwidth=2,
             highlightthickness=2,
             command=self.command6,
@@ -293,10 +299,10 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=910.0, y=250, width=100, height=50)
+        self.cap_button.place(x=910.0, y=150, width=100, height=50)
     def test7(self):
         self.cap_button = Button(
-            text = 'GONE',
+            text = 'ENTRY',
             borderwidth=2,
             highlightthickness=2,
             command=self.command7,
@@ -304,10 +310,10 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=910.0, y=350, width=100, height=50)
+        self.cap_button.place(x=910.0, y=230, width=100, height=50)
     def test8(self):
         self.cap_button = Button(
-            text = 'WAY',
+            text = 'ITEM',
             borderwidth=2,
             highlightthickness=2,
             command=self.command8,
@@ -315,7 +321,29 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=910.0, y=450, width=100, height=50)
+        self.cap_button.place(x=910.0, y=310, width=100, height=50)
+    def test9(self):
+        self.cap_button = Button(
+            text = 'WAY',
+            borderwidth=2,
+            highlightthickness=2,
+            command=self.command9,
+            fg = "white",
+            bg = "purple",
+            relief="raised"
+        )
+        self.cap_button.place(x=910.0, y=390, width=100, height=50)
+    def test10(self):
+        self.cap_button = Button(
+            text = 'GONE',
+            borderwidth=2,
+            highlightthickness=2,
+            command=self.command10,
+            fg = "white",
+            bg = "purple",
+            relief="raised"
+        )
+        self.cap_button.place(x=910.0, y=470, width=100, height=50)
 
     def create_capbutton(self):
         self.capbutton_image = PhotoImage(file=self.relative_to_assets("newmenu.png"))
@@ -374,6 +402,13 @@ class HealthMonitorApp:
         self.test1()
         self.test2()
         self.test3()
+        self.test4()
+        self.test5()
+        self.test6()
+        self.test7()
+        self.test8()
+        self.test9()
+        self.test10()
         self.window.after(1, lambda:self.canvas.itemconfig(self.background, image=self.image_menu))
 
     def update_pass(self,num):
