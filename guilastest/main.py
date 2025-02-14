@@ -1,23 +1,17 @@
 from pathlib import Path
 import sqlite3
-import threading
-import pygame
 from tkinter import Tk, Canvas, Button, PhotoImage, messagebox, ttk, font
 import tkinter.font as tkFont
-import cv2
-from PIL import ImageTk, Image , ImageDraw
-import webview
-
+import os
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
-
-from tkinter import Tk
 
 class RosGui(Node):
     def __init__(self):
         super().__init__('ros_gui')
         self.publisher_ = self.create_publisher(String, 'sound_command', 10)
+        
 class HealthMonitorApp:
     # Init
     ###################################################################################################################################################
@@ -54,25 +48,16 @@ class HealthMonitorApp:
             relief="ridge"
         )
         self.canvas.place(x=0, y=0)
-        # Database connection
         self.conn = None
         self.cursor = None
         #self.db_name = 'your_database.db'  # Change to your SQLite database name 
         self.db_name = "/home/pannoi_db.db"
         self.connect_db()
         self.image_background = None
-        self.image_face1 = None
-        self.image_face2 = None
-        self.image_background = None
         self.emotion_image = None
-        self.presentstate = False
-        self.audio = None
         self.current_image_index = 0
-        self.nextsound = False
         self.vitalpage_state = False
         self.table_name = None
-        self.starstate = True
-        self.framestate = 'face1'
         self.pr = 0
         self.spo2 = 0
         self.sys = 0
@@ -84,11 +69,15 @@ class HealthMonitorApp:
         self.window.bind("<d>", self.command3)
         self.window.bind("<Escape>", self.exit_app)
         self.pagestate = False
+        self.index = 0 
+        self.delay = 20 
         self.load_images()
         self.create_widgets()
+        self.canvas.tag_bind(self.emotion_image, "<Button-1>", self.on_image_click)
         self.start()
         
-        
+    def on_image_click(self,event):
+        self.open_menu()    
 
     def connect_db(self):
         """Connect to the SQLite database."""
@@ -132,34 +121,17 @@ class HealthMonitorApp:
     def relative_to_assets(self, path: str) -> Path:
         return self.ASSETS_PATH / Path(path)
 
-    # Open threaded to play sound
-    ###################################################################################################################################################
-    def play(self):
-        self.window.after(1,lambda:self.play_audio(self.audio))
-        
-    # Play audio file
-    ###################################################################################################################################################      
-    def play_audio(self, file_path):
-        pygame.init()
-        pygame.mixer.init()
-        try:
-            pygame.mixer.music.stop()        
-            pygame.mixer.music.load(file_path)
-            pygame.mixer.music.play()
-            while pygame.mixer.music.get_busy():
-                pygame.time.Clock().tick(100)
-        except pygame.error as e:
-            print(f"Error playing audio: {e}")
-        finally:
-            pygame.mixer.quit()
-
     ###################################################################################################################################################
     def load_images(self):
         self.image_main = PhotoImage(file=self.relative_to_assets("main.png"))
-        self.image_face1 = PhotoImage(file=self.relative_to_assets("clear.png"))
-        self.image_face2 = PhotoImage(file=self.relative_to_assets("blink1.png"))
-        self.image_face3 = PhotoImage(file=self.relative_to_assets("blink2.png"))
-        self.image_star= PhotoImage(file=self.relative_to_assets("star.png"))
+        self.animation_folder = "new"
+        self.animation_images = []
+        for i in range(44):  
+            filename = f"Timeline 1_{i:04d}.png"  
+            img_path = os.path.join(self.animation_folder, filename)
+            
+            if os.path.exists(img_path):  
+                self.animation_images.append(PhotoImage(file=img_path))
         self.image_select_room= PhotoImage(file=self.relative_to_assets("roomselect.png"))
         self.image_menu= PhotoImage(file=self.relative_to_assets("menu.png"))
         self.image_login= PhotoImage(file=self.relative_to_assets("login.png"))
@@ -169,9 +141,7 @@ class HealthMonitorApp:
         
     def create_widgets(self):
         self.background = self.canvas.create_image(514, 302, image=self.image_main)
-        self.emotion_image = self.canvas.create_image(514, 302, image=self.image_face1)
-        self.star_left = self.canvas.create_image(80, 300, image=self.image_star)
-        self.star_right = self.canvas.create_image(950, 500, image=self.image_star)
+        self.emotion_image = self.canvas.create_image(514, 302, image=self.animation_images[self.index])
         self.pr_text = self.canvas.create_text(845, 310, text=self.pr, font=("Helvetica", 32), fill="black",state="hidden")
         self.spo2_text = self.canvas.create_text(845, 391, text=self.dia, font=("Helvetica", 32), fill="black",state="hidden")
         self.sys_text = self.canvas.create_text(845, 462, text=self.sys, font=("Helvetica", 32), fill="black",state="hidden")
@@ -189,7 +159,6 @@ class HealthMonitorApp:
     ###################################################################################################################################################
         
     def start(self):
-        self.create_capbutton()
         self.update_emotion()  
         self.window.overrideredirect(True)
         self.window.overrideredirect(False)
@@ -199,39 +168,11 @@ class HealthMonitorApp:
 
     def update_emotion(self):
         if self.vitalpage_state == False:
-            if self.framestate == 'face1':
-                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face1))
-            elif self.framestate == 'face2':
-                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face2))
-            elif self.framestate == 'face3':
-                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face3))
-            elif self.framestate == 'face4':
-                self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.image_face2))
-            if self.current_image_index%18 == 0:
-                if self.starstate == True:
-                    self.canvas.coords(self.star_left,80,300)
-                    self.canvas.coords(self.star_right,950, 500)
-                    self.starstate = False
-                else:
-                    self.canvas.coords(self.star_left,80,500)
-                    self.canvas.coords(self.star_right,950, 300)
-                    self.starstate = True
-
-            if self.current_image_index > 25 and self.current_image_index < 30:
-                if self.current_image_index%1 == 0:
-                    if self.framestate == 'face1':
-                        self.framestate = 'face2'
-                    elif self.framestate == 'face2':
-                        self.framestate = 'face3'
-                    elif self.framestate == 'face3':
-                        self.framestate = 'face4'
-                    elif self.framestate == 'face4':
-                        self.framestate = 'face1'
-            elif self.current_image_index > 30:
-                self.current_image_index = 0
-                self.framestate = 'face1'
-            self.current_image_index += 1
-            self.window.after(50, self.update_emotion)
+            self.index = (self.index + 1) % len(self.animation_images)  # Loop back to first image
+            self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.animation_images[self.index]))
+            self.window.after(self.delay, self.update_emotion)  # Schedule next frame
+        elif self.vitalpage_state == True:
+            self.index = 0
 
     def test1(self):
         self.cap_button = Button( 
@@ -344,17 +285,6 @@ class HealthMonitorApp:
             relief="raised"
         )
         self.cap_button.place(x=910.0, y=470, width=100, height=50)
-
-    def create_capbutton(self):
-        self.capbutton_image = PhotoImage(file=self.relative_to_assets("newmenu.png"))
-        self.cap_button = Button(
-            image=self.capbutton_image,  
-            borderwidth=0,
-            highlightthickness=0,
-            command=self.open_menu,
-            relief="flat"
-        )
-        self.cap_button.place(x=260.0, y=50)
     
     def create_historybutton(self):
         self.historybutton_image = PhotoImage(file=self.relative_to_assets("vitalbutton.png"))
@@ -394,8 +324,6 @@ class HealthMonitorApp:
         self.pagestate = False
         self.vitalpage_state = True
         self.window.after(1, lambda:self.canvas.itemconfig(self.emotion_image, state="hidden"))
-        self.window.after(1, lambda:self.canvas.itemconfig(self.star_left, state="hidden"))
-        self.window.after(1, lambda:self.canvas.itemconfig(self.star_right, state="hidden"))
         self.create_backbutton()
         self.create_historybutton()
         self.create_callbutton()
@@ -588,9 +516,6 @@ class HealthMonitorApp:
         self.window.after(1, self.back_button.destroy())
         self.window.after(1, self.canvas.itemconfig(self.background, image=self.image_main))
         self.window.after(1, self.canvas.itemconfig(self.emotion_image, state="normal"))
-        self.window.after(1, lambda:self.canvas.itemconfig(self.star_left, state="normal"))
-        self.window.after(1, lambda:self.canvas.itemconfig(self.star_right, state="normal"))
-        self.window.after(1, self.create_capbutton)
         self.window.after(1, self.canvas.itemconfig(self.pr_text, state="hidden"))
         self.window.after(1, self.canvas.itemconfig(self.spo2_text, state="hidden"))
         self.window.after(1, self.canvas.itemconfig(self.sys_text, state="hidden"))
