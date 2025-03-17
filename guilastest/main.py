@@ -19,18 +19,11 @@ class HealthMonitorApp:
     def __init__(self):
         rclpy.init(args=None)
         self.ros = RosGui()
-        self.audio_playing = False
         self.OUTPUT_PATH = Path(__file__).parent
         self.ASSETS_PATH = self.OUTPUT_PATH / Path('image') 
         self.window = Tk()
         self.window.geometry("1024x600")
         self.window.configure(bg="#525050")
-
-
-        # self.cap = cv2.VideoCapture(0)
-        # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1024)
-        # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 600)
-
 
         bigfont = tkFont.Font(family="Helvetica", size=20)
         self.window.option_add("*TCombobox*Listbox*Font", bigfont)
@@ -48,6 +41,7 @@ class HealthMonitorApp:
             relief="ridge"
         )
         self.canvas.place(x=0, y=0)
+        # Database connection
         self.conn = None
         self.cursor = None
         #self.db_name = 'your_database.db'  # Change to your SQLite database name 
@@ -64,20 +58,19 @@ class HealthMonitorApp:
         self.dia = 0
         self.password = '123456'
         self.bindpass = []
-        self.window.bind("<a>", self.command1)
-        self.window.bind("<s>", self.command2)
-        self.window.bind("<d>", self.command3)
         self.window.bind("<Escape>", self.exit_app)
         self.pagestate = False
-        self.index = 0 
-        self.delay = 20 
+        self.index = 0  # Start at first frame
+        self.delay = 20  # Delay in milliseconds (10 FPS)
+        self.togglehidden_state = False
         self.load_images()
         self.create_widgets()
         self.canvas.tag_bind(self.emotion_image, "<Button-1>", self.on_image_click)
         self.start()
         
+        
     def on_image_click(self,event):
-        self.open_menu()    
+        self.open_menu()
 
     def connect_db(self):
         """Connect to the SQLite database."""
@@ -125,16 +118,18 @@ class HealthMonitorApp:
     def load_images(self):
         self.image_main = PhotoImage(file=self.relative_to_assets("main.png"))
         self.animation_folder = "new"
+        # Load images into a list
         self.animation_images = []
-        for i in range(44):  
-            filename = f"Timeline 1_{i:04d}.png"  
+        for i in range(44):  # From 0 to 43
+            filename = f"Timeline 1_{i:04d}.png"  # Generates names like "Timeline 1_0000.png"
             img_path = os.path.join(self.animation_folder, filename)
             
-            if os.path.exists(img_path):  
+            if os.path.exists(img_path):  # Check if file exists before loading
                 self.animation_images.append(PhotoImage(file=img_path))
         self.image_select_room= PhotoImage(file=self.relative_to_assets("roomselect.png"))
         self.image_menu= PhotoImage(file=self.relative_to_assets("menu.png"))
         self.image_login= PhotoImage(file=self.relative_to_assets("login.png"))
+        self.image_hidden_bg= PhotoImage(file=self.relative_to_assets("hidden_bg.png"))
 
     # Create all widgets
     ###################################################################################################################################################
@@ -148,6 +143,7 @@ class HealthMonitorApp:
         self.dia_text = self.canvas.create_text(845, 538, text=self.dia, font=("Helvetica", 32), fill="black",state="hidden")
         self.pass_bg = self.canvas.create_rectangle(20, 220, 540, 380, fill="white", state="hidden")
         self.pass_dec = self.canvas.create_rectangle(569, 0, 574, 600, fill="white", state="hidden")
+        self.hidden_bg = self.canvas.create_image(132, 330, image=self.image_hidden_bg, state="hidden")
         self.a = self.canvas.create_text(80, 300, text='X', font=("Helvetica", 80), fill="black",state="hidden")
         self.b = self.canvas.create_text(160, 300, text='X', font=("Helvetica", 80), fill="black",state="hidden")
         self.c = self.canvas.create_text(240, 300, text='X', font=("Helvetica", 80), fill="black",state="hidden")
@@ -184,7 +180,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=800.0, y=150, width=100, height=50)
+        self.cap_button.place(x=25.0, y=150, width=100, height=50)
     def test2(self):
         self.cap_button = Button(
             text = 'TEST2',
@@ -195,7 +191,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=800.0, y=230, width=100, height=50)
+        self.cap_button.place(x=25.0, y=235, width=100, height=50)
     def test3(self):
         self.cap_button = Button(
             text = 'TEST3',
@@ -206,7 +202,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=800.0, y=310, width=100, height=50)
+        self.cap_button.place(x=25.0, y=320, width=100, height=50)
     
     def test4(self):
         self.cap_button = Button( 
@@ -218,7 +214,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=800.0, y=390, width=100, height=50)
+        self.cap_button.place(x=25.0, y=405, width=100, height=50)
     def test5(self):
         self.cap_button = Button(
             text = 'TEST5',
@@ -229,7 +225,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=800.0, y=470, width=100, height=50)
+        self.cap_button.place(x=25.0, y=490, width=100, height=50)
     def test6(self):
         self.cap_button = Button(
             text = 'TEST6',
@@ -240,7 +236,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=910.0, y=150, width=100, height=50)
+        self.cap_button.place(x=135.0, y=150, width=100, height=50)
     def test7(self):
         self.cap_button = Button(
             text = 'ENTRY',
@@ -251,7 +247,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=910.0, y=230, width=100, height=50)
+        self.cap_button.place(x=135.0, y=235, width=100, height=50)
     def test8(self):
         self.cap_button = Button(
             text = 'ITEM',
@@ -262,7 +258,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=910.0, y=310, width=100, height=50)
+        self.cap_button.place(x=135.0, y=320, width=100, height=50)
     def test9(self):
         self.cap_button = Button(
             text = 'WAY',
@@ -273,7 +269,7 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=910.0, y=390, width=100, height=50)
+        self.cap_button.place(x=135.0, y=405, width=100, height=50)
     def test10(self):
         self.cap_button = Button(
             text = 'GONE',
@@ -284,8 +280,19 @@ class HealthMonitorApp:
             bg = "purple",
             relief="raised"
         )
-        self.cap_button.place(x=910.0, y=470, width=100, height=50)
+        self.cap_button.place(x=135.0, y=490, width=100, height=50)
     
+    def create_hiddenbutton(self):
+        self.hiddenbutton_image = PhotoImage(file=self.relative_to_assets("hidden.png"))
+        self.hidden_button = Button(
+            image=self.hiddenbutton_image,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.toggle_hidden,
+            relief="raised"
+        )
+        self.hidden_button.place(x=1.0, y=1, width=160, height=55)
+
     def create_historybutton(self):
         self.historybutton_image = PhotoImage(file=self.relative_to_assets("vitalbutton.png"))
         self.history_button = Button(  
@@ -319,6 +326,34 @@ class HealthMonitorApp:
         )
         self.back_button.place(x=865.0, y=5)
 
+    def auto_back(self):
+        if(self.vitalpage_state == True):
+            if(self.current_image_index < 600):
+                self.current_image_index += 1
+            else:
+                self.close_vital()
+            self.window.after(100, self.auto_back)
+
+    def toggle_hidden(self):
+        if self.togglehidden_state == False:
+            self.window.after(1, lambda:self.canvas.itemconfig(self.hidden_bg, state="normal"))
+            self.test1()
+            self.test2()
+            self.test3()
+            self.test4()
+            self.test5()
+            self.test6()
+            self.test7()
+            self.test8()
+            self.test9()
+            self.test10()
+            self.togglehidden_state = True
+        elif self.togglehidden_state == True:
+            self.clear_info_frame() 
+            self.open_menu()
+            self.window.after(1, lambda:self.canvas.itemconfig(self.hidden_bg, state="hidden"))
+            self.togglehidden_state = False
+
     def open_menu(self):
         self.clear_info_frame()  
         self.pagestate = False
@@ -327,16 +362,9 @@ class HealthMonitorApp:
         self.create_backbutton()
         self.create_historybutton()
         self.create_callbutton()
-        self.test1()
-        self.test2()
-        self.test3()
-        self.test4()
-        self.test5()
-        self.test6()
-        self.test7()
-        self.test8()
-        self.test9()
-        self.test10()
+        self.create_hiddenbutton()
+        self.current_image_index = 0
+        self.auto_back()
         self.window.after(1, lambda:self.canvas.itemconfig(self.background, image=self.image_menu))
 
     def update_pass(self,num):
@@ -408,6 +436,8 @@ class HealthMonitorApp:
 
     def open_login(self):
         self.clear_info_frame()
+        self.togglehidden_state = False
+        self.window.after(1,lambda:self.canvas.itemconfig(self.hidden_bg,state="hidden"))
         self.window.after(1,lambda:self.canvas.itemconfig(self.a,text = 'X'))
         self.window.after(1,lambda:self.canvas.itemconfig(self.b,text = 'X'))
         self.window.after(1,lambda:self.canvas.itemconfig(self.c,text = 'X'))
@@ -500,11 +530,13 @@ class HealthMonitorApp:
 
     def close_vital(self):
         self.vitalpage_state = False
+        self.togglehidden_state = False
         if(self.pagestate == True):
             self.time_combobox.destroy()
             self.table_combobox.destroy()
             self.date_combobox.destroy()
         self.clear_info_frame()
+        self.window.after(1, lambda:self.canvas.itemconfig(self.hidden_bg, state="hidden"))
         self.window.after(1,lambda:self.canvas.itemconfig(self.pass_bg,state="hidden"))
         self.window.after(1,lambda:self.canvas.itemconfig(self.pass_dec,state="hidden"))
         self.window.after(1,lambda:self.canvas.itemconfig(self.a,state="hidden"))
