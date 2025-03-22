@@ -6,6 +6,8 @@ import os
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+import socket
+import json
 
 class RosGui(Node):
     def __init__(self):
@@ -17,6 +19,8 @@ class HealthMonitorApp:
     ###################################################################################################################################################
     
     def __init__(self):
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect(('localhost', 5000))
         rclpy.init(args=None)
         self.ros = RosGui()
         self.OUTPUT_PATH = Path(__file__).parent
@@ -61,11 +65,14 @@ class HealthMonitorApp:
         self.window.bind("<Escape>", self.exit_app)
         self.pagestate = False
         self.index = 0  # Start at first frame
-        self.delay = 20  # Delay in milliseconds (10 FPS)
+        self.delay = 25  # Delay in milliseconds (10 FPS)
+        self.battery_percentage = 100
+        self.map_battery_percentage = 939 + 0.47*self.battery_percentage
         self.togglehidden_state = False
         self.load_images()
         self.create_widgets()
         self.canvas.tag_bind(self.emotion_image, "<Button-1>", self.on_image_click)
+        self.canvas.tag_bind(self.battery, "<Button-1>", self.on_image_click)
         self.start()
         
         
@@ -130,6 +137,7 @@ class HealthMonitorApp:
         self.image_menu= PhotoImage(file=self.relative_to_assets("menu.png"))
         self.image_login= PhotoImage(file=self.relative_to_assets("login.png"))
         self.image_hidden_bg= PhotoImage(file=self.relative_to_assets("hidden_bg.png"))
+        self.image_battery= PhotoImage(file=self.relative_to_assets("battery.png"))
 
     # Create all widgets
     ###################################################################################################################################################
@@ -137,6 +145,8 @@ class HealthMonitorApp:
     def create_widgets(self):
         self.background = self.canvas.create_image(514, 302, image=self.image_main)
         self.emotion_image = self.canvas.create_image(514, 302, image=self.animation_images[self.index])
+        self.battery = self.canvas.create_image(965,30,image=self.image_battery)
+        self.battery_guage = self.canvas.create_rectangle(939, 19, 986, 41, fill="forestgreen")
         self.pr_text = self.canvas.create_text(845, 310, text=self.pr, font=("Helvetica", 32), fill="black",state="hidden")
         self.spo2_text = self.canvas.create_text(845, 391, text=self.dia, font=("Helvetica", 32), fill="black",state="hidden")
         self.sys_text = self.canvas.create_text(845, 462, text=self.sys, font=("Helvetica", 32), fill="black",state="hidden")
@@ -163,6 +173,10 @@ class HealthMonitorApp:
         self.window.mainloop()
 
     def update_emotion(self):
+        self.battery_data_received = client.recv(1024).decode()
+        self.battery_percentage = json.loads(self.battery_data_recieved)
+        self.map_battery_percentage = 939 + 0.47*self.battery_percentage
+        self.canvas.coords(self.battery_guage, 939, 19, self.map_battery_percentage, 41)
         if self.vitalpage_state == False:
             self.index = (self.index + 1) % len(self.animation_images)  # Loop back to first image
             self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.animation_images[self.index]))
@@ -326,14 +340,6 @@ class HealthMonitorApp:
         )
         self.back_button.place(x=865.0, y=5)
 
-    def auto_back(self):
-        if(self.vitalpage_state == True):
-            if(self.current_image_index < 600):
-                self.current_image_index += 1
-            else:
-                self.close_vital()
-            self.window.after(100, self.auto_back)
-
     def toggle_hidden(self):
         if self.togglehidden_state == False:
             self.window.after(1, lambda:self.canvas.itemconfig(self.hidden_bg, state="normal"))
@@ -364,7 +370,6 @@ class HealthMonitorApp:
         self.create_callbutton()
         self.create_hiddenbutton()
         self.current_image_index = 0
-        self.auto_back()
         self.window.after(1, lambda:self.canvas.itemconfig(self.background, image=self.image_menu))
 
     def update_pass(self,num):
