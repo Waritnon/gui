@@ -20,7 +20,7 @@ class HealthMonitorApp:
     
     def __init__(self):
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client.connect(('localhost', 7000))
+        self.window.after(5000,client.connect(('localhost', 7000)))
         rclpy.init(args=None)
         self.ros = RosGui()
         self.OUTPUT_PATH = Path(__file__).parent
