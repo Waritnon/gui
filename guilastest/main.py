@@ -26,9 +26,12 @@ class HealthMonitorApp:
         self.window = Tk()
         self.window.geometry("1024x600")
         self.window.configure(bg="#525050")
-        
-        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.window.after(5000,client.connect(('localhost', 7000)))
+
+        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server.bind(('localhost', 7000))
+        server.listen(1)
+        print("Waiting for connection...")
+        self.connection, self.address = server.accept()
         bigfont = tkFont.Font(family="Helvetica", size=20)
         self.window.option_add("*TCombobox*Listbox*Font", bigfont)
         style = ttk.Style()
@@ -173,8 +176,8 @@ class HealthMonitorApp:
         self.window.mainloop()
 
     def update_emotion(self):
-        self.battery_data_received = client.recv(1024).decode()
-        self.battery_percentage = json.loads(self.battery_data_recieved)
+        self.battery_data_received = self.connection.recv(1024).decode()
+        self.battery_percentage = json.loads(self.battery_data_received)
         self.map_battery_percentage = 939 + 0.47*self.battery_percentage
         self.canvas.coords(self.battery_guage, 939, 19, self.map_battery_percentage, 41)
         if self.vitalpage_state == False:
