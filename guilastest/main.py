@@ -19,19 +19,19 @@ class HealthMonitorApp:
     ###################################################################################################################################################
     
     def __init__(self):
-        rclpy.init(args=None)
-        self.ros = RosGui()
-        self.OUTPUT_PATH = Path(__file__).parent
-        self.ASSETS_PATH = self.OUTPUT_PATH / Path('image') 
-        self.window = Tk()
-        self.window.geometry("1024x600")
-        self.window.configure(bg="#525050")
-
         server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server.bind(('localhost', 7000))
         server.listen(1)
         print("Waiting for connection...")
         self.connection, self.address = server.accept()
+        rclpy.init(args=None)
+        self.ros = RosGui()
+        
+        self.OUTPUT_PATH = Path(__file__).parent
+        self.ASSETS_PATH = self.OUTPUT_PATH / Path('image') 
+        self.window = Tk()
+        self.window.geometry("1024x600")
+        self.window.configure(bg="#525050")
         bigfont = tkFont.Font(family="Helvetica", size=20)
         self.window.option_add("*TCombobox*Listbox*Font", bigfont)
         style = ttk.Style()
