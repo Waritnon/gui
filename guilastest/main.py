@@ -33,11 +33,10 @@ class MyServer:
 class HealthMonitorApp:
     # Init
     ###################################################################################################################################################
-    def __init__(self):
-
+    def __init__(self,server):
+        self.server = server
         rclpy.init(args=None)
         self.ros = RosGui()
-
         self.OUTPUT_PATH = Path(__file__).parent
         self.ASSETS_PATH = self.OUTPUT_PATH / Path('image') 
         self.window = Tk()
@@ -187,7 +186,7 @@ class HealthMonitorApp:
         self.window.mainloop()
 
     def update_emotion(self):
-        self.battery_data_received = self.connection.recv(1024).decode()
+        self.battery_data_received = self.server.connection.recv(1024).decode()
         self.battery_percentage = json.loads(self.battery_data_received)
         self.map_battery_percentage = 939 + 0.47*self.battery_percentage
         self.canvas.coords(self.battery_guage, 939, 19, self.map_battery_percentage, 41)
@@ -737,4 +736,4 @@ class HealthMonitorApp:
     ###################################################################################################################################################
 if __name__ == "__main__":
     server = MyServer()
-    app = HealthMonitorApp()
+    app = HealthMonitorApp(server)
