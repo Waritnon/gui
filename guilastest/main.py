@@ -14,6 +14,22 @@ class RosGui(Node):
     def __init__(self):
         super().__init__('ros_gui')
         self.publisher_ = self.create_publisher(String, 'sound_command', 10)
+
+class MyServer:
+    def __init__(self):
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.bind(('localhost', 7000))
+        self.server.listen(1)
+        print("Waiting for connection...")
+
+        # Start listening in a separate thread
+        self.thread = threading.Thread(target=self.accept_connection, daemon=True)
+        self.thread.start()
+
+    def accept_connection(self):
+        self.connection, self.address = self.server.accept()
+        self.connection.settimeout(10)
+        print(f"Connected to {self.address}")
             
 class HealthMonitorApp:
     # Init
@@ -719,23 +735,6 @@ class HealthMonitorApp:
         self.window.destroy()
 
     ###################################################################################################################################################
-
-class MyServer:
-    def __init__(self):
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.bind(('localhost', 7000))
-        self.server.listen(1)
-        print("Waiting for connection...")
-
-        # Start listening in a separate thread
-        self.thread = threading.Thread(target=self.accept_connection, daemon=True)
-        self.thread.start()
-
-    def accept_connection(self):
-        self.connection, self.address = self.server.accept()
-        app = HealthMonitorApp(server)
-        print(f"Connected to {self.address}")
-        
 if __name__ == "__main__":
     server = MyServer()
-    
+    app = HealthMonitorApp(server)
