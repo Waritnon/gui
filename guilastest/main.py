@@ -32,8 +32,16 @@ class MyServer:
         print(f"Connected to {self.address}")
     
     def recived(self):
-        data = self.connection.recv(1024).decode()
-        return data
+         # เช็คก่อนว่า connection มีค่าหรือยัง
+        if self.connection is None:
+            print("No client connected yet!")
+            return None
+        try:
+            data = self.connection.recv(1024).decode()
+            return data
+        except socket.error as e:
+            print(f"Socket error: {e}")
+            return None
             
 class HealthMonitorApp:
     # Init
