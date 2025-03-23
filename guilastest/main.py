@@ -30,6 +30,10 @@ class MyServer:
         self.connection, self.address = self.server.accept()
         self.connection.settimeout(10)
         print(f"Connected to {self.address}")
+    
+    def recived(self):
+        data = self.connection.recv(1024).decode()
+        return data
             
 class HealthMonitorApp:
     # Init
@@ -187,7 +191,7 @@ class HealthMonitorApp:
         self.window.mainloop()
 
     def update_emotion(self):
-        self.battery_data_received = self.server.connection.recv(1024).decode()
+        self.battery_data_received = server.recived()
         self.battery_percentage = json.loads(self.battery_data_received)
         self.map_battery_percentage = 939 + 0.47*self.battery_percentage
         self.canvas.coords(self.battery_guage, 939, 19, self.map_battery_percentage, 41)
