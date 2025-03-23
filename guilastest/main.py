@@ -8,25 +8,36 @@ from rclpy.node import Node
 from std_msgs.msg import String
 import socket
 import json
+import threading
 
 class RosGui(Node):
     def __init__(self):
         super().__init__('ros_gui')
         self.publisher_ = self.create_publisher(String, 'sound_command', 10)
-        
+
+class MyServer:
+    def __init__(self):
+        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server.bind(('localhost', 7000))
+        self.server.listen(1)
+        print("Waiting for connection...")
+
+        # Start listening in a separate thread
+        self.thread = threading.Thread(target=self.accept_connection, daemon=True)
+        self.thread.start()
+
+    def accept_connection(self):
+        self.connection, self.address = self.server.accept()
+        print(f"Connected to {self.address}")
+            
 class HealthMonitorApp:
     # Init
     ###################################################################################################################################################
-    
     def __init__(self):
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.bind(('localhost', 7000))
-        server.listen(1)
-        print("Waiting for connection...")
-        self.connection, self.address = server.accept()
+
         rclpy.init(args=None)
         self.ros = RosGui()
-        
+
         self.OUTPUT_PATH = Path(__file__).parent
         self.ASSETS_PATH = self.OUTPUT_PATH / Path('image') 
         self.window = Tk()
@@ -725,4 +736,5 @@ class HealthMonitorApp:
 
     ###################################################################################################################################################
 if __name__ == "__main__":
+    server = MyServer()
     app = HealthMonitorApp()
