@@ -72,18 +72,21 @@ class HealthMonitorApp:
         )
         self.canvas.place(x=0, y=0)
         # Database connection
-        self.conn = None
-        self.cursor = None
-        #self.db_name = 'your_database.db'  # Change to your SQLite database name 
-        self.db_name = "/home/pannoi_db.db"
-        self.connect_db()
         self.image_background = None
         self.emotion_image = None
         self.current_image_index = 0
         self.vitalpage_state = False
         self.table_name = None
+        self.id = 'null'
+        self.name = 'null'
+        self.room_num = 0
+        self.weight = 0
+        self.height = 0
+        self.date = 'null'
+        self.time = 'null'
         self.pr = 0
         self.spo2 = 0
+        self.temp = 0
         self.sys = 0
         self.dia = 0
         self.password = '123456'
@@ -104,15 +107,6 @@ class HealthMonitorApp:
         
     def on_image_click(self,event):
         self.open_menu()
-
-    def connect_db(self):
-        """Connect to the SQLite database."""
-        try:
-            self.conn = sqlite3.connect(self.db_name)
-            self.cursor = self.conn.cursor()
-        except sqlite3.Error as e:
-            print(f"Error connecting to database: {e}")
-            raise
 
     def command1(self):
         self.ros.publisher_.publish(String(data="hello"))
@@ -173,10 +167,18 @@ class HealthMonitorApp:
         self.emotion_image = self.canvas.create_image(514, 302, image=self.animation_images[self.index])
         self.battery = self.canvas.create_image(965,30,image=self.image_battery)
         self.battery_guage = self.canvas.create_rectangle(939, 19, 986, 41, fill="forestgreen")
-        self.pr_text = self.canvas.create_text(845, 310, text=self.pr, font=("Helvetica", 32), fill="black",state="hidden")
-        self.spo2_text = self.canvas.create_text(845, 391, text=self.dia, font=("Helvetica", 32), fill="black",state="hidden")
-        self.sys_text = self.canvas.create_text(845, 462, text=self.sys, font=("Helvetica", 32), fill="black",state="hidden")
-        self.dia_text = self.canvas.create_text(845, 538, text=self.dia, font=("Helvetica", 32), fill="black",state="hidden")
+        self.id_text = self.canvas.create_text(350, 208, text=self.id, font=("Helvetica", 32), fill="black",state="hidden")
+        self.name_text = self.canvas.create_text(350, 275, text=self.name, font=("Helvetica", 32), fill="black",state="hidden")
+        self.room_num_text = self.canvas.create_text(350, 348, text=self.room_num, font=("Helvetica", 32), fill="black",state="hidden")
+        self.weight_text = self.canvas.create_text(350, 422, text=self.weight, font=("Helvetica", 32), fill="black",state="hidden")
+        self.height_text = self.canvas.create_text(350, 495, text=self.height, font=("Helvetica", 32), fill="black",state="hidden")
+        self.date_text = self.canvas.create_text(350, 565, text=self.date, font=("Helvetica", 32), fill="black",state="hidden")
+        self.time_text = self.canvas.create_text(850, 208, text=self.time, font=("Helvetica", 32), fill="black",state="hidden")
+        self.pr_text = self.canvas.create_text(850, 275, text=self.pr, font=("Helvetica", 32), fill="black",state="hidden")
+        self.spo2_text = self.canvas.create_text(850, 348, text=self.spo2, font=("Helvetica", 32), fill="black",state="hidden")
+        self.temp_text = self.canvas.create_text(850, 422, text=self.dia, font=("Helvetica", 32), fill="black",state="hidden")
+        self.sys_text = self.canvas.create_text(850, 495, text=self.sys, font=("Helvetica", 32), fill="black",state="hidden")
+        self.dia_text = self.canvas.create_text(850, 565, text=self.dia, font=("Helvetica", 32), fill="black",state="hidden")
         self.pass_bg = self.canvas.create_rectangle(20, 220, 540, 380, fill="white", state="hidden")
         self.pass_dec = self.canvas.create_rectangle(569, 0, 574, 600, fill="white", state="hidden")
         self.hidden_bg = self.canvas.create_image(132, 330, image=self.image_hidden_bg, state="hidden")
@@ -544,14 +546,93 @@ class HealthMonitorApp:
         self.window.after(1,lambda:self.canvas.itemconfig(self.e,state="hidden"))
         self.window.after(1,lambda:self.canvas.itemconfig(self.f,state="hidden"))
         self.window.after(1, lambda:self.canvas.itemconfig(self.background, image=self.image_select_room))
-        self.window.after(1, lambda:self.canvas.itemconfig(self.pr_text,text = self.pr, state="normal"))
-        self.window.after(1, lambda:self.canvas.itemconfig(self.spo2_text,text = self.spo2, state="normal"))
-        self.window.after(1, lambda:self.canvas.itemconfig(self.sys_text,text = self.sys,  state="normal"))
-        self.window.after(1, lambda:self.canvas.itemconfig(self.dia_text,text = self.dia,  state="normal"))
-        # Show table name combobox
-        self.show_table_buttons()
-        self.show_date_buttons(initial=True)
-        self.show_time_buttons(initial=True)
+        self.id = 'null'
+        self.name = 'null'
+        self.room_num = 0
+        self.weight = 0
+        self.height = 0
+        self.date = 'null'
+        self.time = 'null'
+        self.pr = 0
+        self.spo2 = 0
+        self.temp = 0
+        self.sys = 0
+        self.dia = 0
+        self.window.after(1, lambda:self.canvas.itemconfig(self.id_text, text=self.id, state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.name_text, text=self.name, state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.room_num_text, text=self.room_num, state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.weight_text, text=self.weight,state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.height_text, text=self.height, state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.date_text, text=self.date, state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.time_text, text=self.time,state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig( self.pr_text, text=self.pr, state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.spo2_text, text=self.spo2,state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.temp_text, text=self.dia, state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.sys_text, text=self.sys, state="normal"))
+        self.window.after(1, lambda:self.canvas.itemconfig(self.dia_text, text=self.dia, state="normal"))
+        self.patient_combobox = ttk.Combobox(
+            self.window, 
+            font=("Helvetica", 20), 
+            state="readonly",
+            width=30
+        )
+        self.patient_combobox.place(x=340, y=133)
+        self.window.after(1,self.patient_combobox.set("SELECT PATIENT"))
+        self.patient_combobox.bind("<<ComboboxSelected>>", self.on_patient_select)
+        try:
+            conn = sqlite3.connect('patient_database.db')
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM patients;")
+            tables = cursor.fetchall()
+            
+            if tables:
+                # สร้างรายการสำหรับ Combobox (แสดง ID และชื่อ)
+                patient_list = [f"{row[0]} - {row[1]}" for row in tables]
+                self.patient_combobox['values'] = patient_list
+                self.patient_combobox['state'] = 'readonly'
+                
+                # เก็บข้อมูลทั้งหมดสำหรับการแสดงผล
+                self.patient_data = {f"{row[0]} - {row[1]}": row for row in tables}
+            else:
+                self.patient_combobox['values'] = []
+                self.patient_combobox.set("ไม่มีข้อมูลผู้ป่วย")
+                self.patient_combobox['state'] = 'disabled'
+                
+            conn.close()
+        except sqlite3.Error as e:
+            print(f"Error loading patient data: {e}")
+            self.patient_combobox.set("เกิดข้อผิดพลาดในการโหลดข้อมูล")
+
+    def on_patient_select(self, event):
+        """เมื่อเลือกผู้ป่วยจาก Combobox"""
+        selected_patient = self.patient_combobox.get()
+        
+        if selected_patient in self.patient_data:
+            patient = self.patient_data[selected_patient]
+            self.id = patient[0]
+            self.name = patient[1]
+            self.room_num = patient[2]
+            self.weight = patient[3]
+            self.height = patient[4]
+            self.date = patient[5]
+            self.time = patient[6]
+            self.pr = patient[7]
+            self.spo2 = patient[8]
+            self.temp = patient[9]
+            self.sys = patient[10]
+            self.dia = patient[11]
+            self.window.after(1, lambda:self.canvas.itemconfig(self.id_text, text=self.id, state="normal"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.name_text, text=self.name, state="normal"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.room_num_text, text=self.room_num, state="normal"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.weight_text, text=self.weight,state="normal"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.height_text, text=self.height, state="normal"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.date_text, text=self.date, state="normal"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.time_text, text=self.time,state="normal"))
+            self.window.after(1, lambda:self.canvas.itemconfig( self.pr_text, text=self.pr, state="normal"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.spo2_text, text=self.spo2,state="normal"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.temp_text, text=self.dia, state="normal"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.sys_text, text=self.sys, state="normal"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.dia_text, text=self.dia, state="normal"))
 
     def clear_info_frame(self):
         """Clear the info frame to remove old buttons."""
@@ -560,12 +641,22 @@ class HealthMonitorApp:
                 widget.destroy()
 
     def close_vital(self):
+        if self.vitalpage_state == True:
+            self.patient_combobox.destroy()
+            self.window.after(1, lambda:self.canvas.itemconfig(self.id_text, text=self.id, state="hidden"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.name_text, text=self.name, state="hidden"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.room_num_text, text=self.room_num, state="hidden"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.weight_text, text=self.weight,state="hidden"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.height_text, text=self.height, state="hidden"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.date_text, text=self.date, state="hidden"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.time_text, text=self.time,state="hidden"))
+            self.window.after(1, lambda:self.canvas.itemconfig( self.pr_text, text=self.pr, state="hidden"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.spo2_text, text=self.spo2,state="hidden"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.temp_text, text=self.dia, state="hidden"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.sys_text, text=self.sys, state="hidden"))
+            self.window.after(1, lambda:self.canvas.itemconfig(self.dia_text, text=self.dia, state="hidden"))
         self.vitalpage_state = False
         self.togglehidden_state = False
-        if(self.pagestate == True):
-            self.time_combobox.destroy()
-            self.table_combobox.destroy()
-            self.date_combobox.destroy()
         self.clear_info_frame()
         self.window.after(1, lambda:self.canvas.itemconfig(self.hidden_bg, state="hidden"))
         self.window.after(1,lambda:self.canvas.itemconfig(self.pass_bg,state="hidden"))
@@ -579,171 +670,12 @@ class HealthMonitorApp:
         self.window.after(1, self.back_button.destroy())
         self.window.after(1, self.canvas.itemconfig(self.background, image=self.image_main))
         self.window.after(1, self.canvas.itemconfig(self.emotion_image, state="normal"))
-        self.window.after(1, self.canvas.itemconfig(self.pr_text, state="hidden"))
-        self.window.after(1, self.canvas.itemconfig(self.spo2_text, state="hidden"))
-        self.window.after(1, self.canvas.itemconfig(self.sys_text, state="hidden"))
-        self.window.after(1, self.canvas.itemconfig(self.dia_text, state="hidden"))
-
         self.update_emotion()         
-
-    def show_table_buttons(self):
-        """Fetch and display the table names from the database using a read-only Combobox.""" 
-        try:
-            # Fetch all table names from the database
-            self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-            tables = self.cursor.fetchall()
-
-            if tables:
-                table_list = [table[0] for table in tables]  # Extract table names into a list
-
-                # Create a read-only Combobox for selecting tables
-                self.table_combobox = ttk.Combobox(self.window, values=table_list, font=("Helvetica", 26), state="readonly",width= 14)
-                self.table_combobox.place(x=166, y=158)  # Adjust placement as needed
-                self.table_combobox.set("Select a room")  # Set the default prompt text
-
-                # Create an action for the combobox selection
-                def on_table_select(event):
-                    selected_table = self.table_combobox.get()
-                    self.table_name = selected_table
-                    self.pr = 0
-                    self.spo2 = 0
-                    self.sys = 0
-                    self.dia = 0
-                    self.canvas.itemconfig(self.pr_text, text=self.pr)
-                    self.canvas.itemconfig(self.spo2_text, text=self.spo2)
-                    self.canvas.itemconfig(self.sys_text, text=self.sys)
-                    self.canvas.itemconfig(self.dia_text, text=self.dia)
-                    # Enable and update date and time comboboxes with relevant options
-                    self.show_date_buttons(initial=False)
-                    self.show_time_buttons(initial=False)
-                    self.time_combobox['state'] = 'disabled'
-
-                # Bind the combobox selection event to the function
-                self.table_combobox.bind("<<ComboboxSelected>>", on_table_select)
-        except sqlite3.Error as e:
-            print(f"Error fetching tables: {e}")
-            #messagebox.showerror("Database Error", f"Error fetching tables: {e}")
-
-
-    def show_date_buttons(self, initial=False):
-        """Fetch and display the latest dates from the selected table using a read-only Combobox."""
-        if initial:
-            # Create an empty, disabled combobox for dates initially
-            self.date_combobox = ttk.Combobox(self.window, font=("Helvetica", 26), state="disabled",width= 14)
-            self.window.after(1,self.date_combobox.place(x=166, y=293))  # Adjust placement as needed
-            self.window.after(1,self.date_combobox.set("Select a date"))
-            return
-
-        self.create_backbutton()
-
-        try:
-            # Fetch the last 20 dates, ordered by date in descending order
-            self.cursor.execute(f"""
-                SELECT DISTINCT date 
-                FROM {self.table_name} 
-                ORDER BY date DESC 
-                LIMIT 20;
-            """)
-            dates = self.cursor.fetchall()
-
-            if dates:
-                date_list = [date[0] for date in dates]  # Extract date values into a list
-
-                # Update and enable the date combobox with the fetched dates
-                self.date_combobox['values'] = date_list
-                self.date_combobox['state'] = 'readonly'  # Enable it now
-                self.date_combobox.set("Select a date")
-
-                # Create an action for the combobox selection
-                def on_date_select(event):
-                    self.selected_date = self.date_combobox.get()  # Store the selected date
-                    self.show_time_buttons(initial=False)  # Show time options based on the selected date
-
-                # Bind the combobox selection event to the function
-                self.date_combobox.bind("<<ComboboxSelected>>", on_date_select)
-            else:
-                self.date_combobox['state'] = 'disabled'  # Disable if no dates are available
-                self.date_combobox.set("No dates available")
-        except sqlite3.Error as e:
-            print(f"Error fetching dates: {e}")
-            #messagebox.showerror("Database Error", f"Error fetching dates: {e}")
-
-    def show_time_buttons(self, initial=False):
-        """Fetch and display times from the selected date using a read-only Combobox."""
-        if initial:
-            # Create an empty, disabled combobox for times initially
-            self.time_combobox = ttk.Combobox(self.window, font=("Helvetica", 26), state="disabled",width= 15)
-            self.window.after(1,self.time_combobox.place(x=690, y=158))  # Adjust placement as needed
-            self.window.after(1,self.time_combobox.set("Select a time"))
-            return
-
-        # Clear previous buttons if any
-        self.create_backbutton()
-
-        try:
-            if hasattr(self, 'table_name') and hasattr(self, 'selected_date'):
-                # Fetch times based on the selected table and date
-                self.cursor.execute(f"""
-                    SELECT DISTINCT time 
-                    FROM {self.table_name} 
-                    WHERE date = ? 
-                    ORDER BY time DESC 
-                    LIMIT 20;
-                """, (self.selected_date,))  # Use the stored selected_date
-                times = self.cursor.fetchall()
-
-                if times:
-                    time_list = [time[0] for time in times]  # Extract time values into a list
-
-                    # Update and enable the time combobox with the fetched times
-                    self.time_combobox['values'] = time_list
-                    self.time_combobox['state'] = 'readonly'  # Enable it now
-                    self.time_combobox.set("Select a time")
-
-                    # Create an action for the combobox selection
-                    def on_time_select(event):
-                        selected_time = self.time_combobox.get()
-                        self.show_values(selected_time, self.selected_date, self.table_name)
-
-                    # Bind the combobox selection event to the function
-                    self.time_combobox.bind("<<ComboboxSelected>>", on_time_select)
-                else:
-                    self.time_combobox['state'] = 'disabled'  # Disable if no times are available
-                    self.time_combobox.set("No times available")
-        except sqlite3.Error as e:
-            print(f"Error fetching times: {e}")
-            #messagebox.showerror("Database Error", f"Error fetching times: {e}")
-
-
-    def show_values(self, time, date, table_name):
-        """Fetch and print PR, SpO2, Temp, Sys, Dia values for the selected time and date."""
-        try:
-            self.cursor.execute(f"""
-                SELECT PR, SpO2, Temp, Sys, Dia 
-                FROM {table_name} 
-                WHERE date = ? AND time = ?
-            """, (date, time))  # Use the selected table name
-            results = self.cursor.fetchall()
-            if results:
-                result_text = f"Values for {time} on {date}:\n"
-                for row in results:
-                    result_text += f"PR: {row[0]}, SpO2: {row[1]}, Temp: {row[2]}, Sys: {row[3]}, Dia: {row[4]}\n"
-                self.pr, self.spo2, self.temp, self.sys, self.dia = row
-                self.canvas.itemconfig(self.pr_text, text=self.pr)
-                self.canvas.itemconfig(self.spo2_text, text=self.spo2)
-                self.canvas.itemconfig(self.sys_text, text=self.sys)
-                self.canvas.itemconfig(self.dia_text, text=self.dia)
-                #print(result_text)
-        except sqlite3.Error as e:
-            print(f"Error fetching values for time {time} on date {date}: {e}")
-            #messagebox.showerror("Database Error", f"Error fetching values: {e}")
-
 
     # Exit function
     ###################################################################################################################################################
 
     def exit_app(self, event):
-        self.conn.close()  # Close database connection
         self.window.destroy()
 
     ###################################################################################################################################################
