@@ -574,9 +574,9 @@ class HealthMonitorApp:
             self.window, 
             font=("Helvetica", 20), 
             state="readonly",
-            width=30
+            width=60
         )
-        self.patient_combobox.place(x=340, y=133)
+        self.patient_combobox.place(x=55, y=133)
         self.window.after(1,self.patient_combobox.set("SELECT PATIENT"))
         self.patient_combobox.bind("<<ComboboxSelected>>", self.on_patient_select)
         try:
@@ -587,7 +587,7 @@ class HealthMonitorApp:
             
             if tables:
                 # สร้างรายการสำหรับ Combobox (แสดง ID และชื่อ)
-                patient_list = [f"{row[0]} - {row[1]}" for row in tables]
+                patient_list = [f"ID: {row[0]} | Name: {row[1]} | Date: {row[5]} | Time: {row[6]}" for row in tables]
                 self.patient_combobox['values'] = patient_list
                 self.patient_combobox['state'] = 'readonly'
                 
