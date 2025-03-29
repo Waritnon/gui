@@ -5,51 +5,50 @@ import tkinter.font as tkFont
 import os
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
 from std_msgs.msg import String
-import socket
-import json
+from sensor_msgs.msg import BatteryState
 import threading
+import time
 
 class RosGui(Node):
     def __init__(self):
         super().__init__('ros_gui')
         self.publisher_ = self.create_publisher(String, 'sound_command', 10)
-
-class MyServer:
-    def __init__(self):
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.bind(('localhost', 7000))
-        self.server.listen(1)
-        print("Waiting for connection...")
-
-        # Start listening in a separate thread
-        self.thread = threading.Thread(target=self.accept_connection, daemon=True)
-        self.thread.start()
-
-    def accept_connection(self):
-        self.connection, self.address = self.server.accept()
-        self.connection.settimeout(10)
-        print(f"Connected to {self.address}")
+        
+        # Create QoS profile for battery state subscriber
+        qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            durability=DurabilityPolicy.VOLATILE,
+            depth=10
+        )
+        
+        # Battery state subscriber
+        self.battery_percentage = 100  # Default value
+        self.battery_subscriber = self.create_subscription(
+            BatteryState,
+            'battery/state',
+            self.battery_callback,
+            qos_profile
+        )
+        self.get_logger().info('Battery state subscriber initialized')
     
-    def recived(self):
-         # เช็คก่อนว่า connection มีค่าหรือยัง
-        if self.connection is None:
-            print("No client connected yet!")
-            return None
-        try:
-            data = self.connection.recv(1024).decode()
-            return data
-        except socket.error as e:
-            print(f"Socket error: {e}")
-            return None
+    def battery_callback(self, msg):
+        # BatteryState message provides percentage as float between 0.0 and 1.0
+        self.battery_percentage = int(msg.percentage)  # Convert to percentage (0-100)
+        self.get_logger().info(f'Battery percentage: {self.battery_percentage}%')
             
 class HealthMonitorApp:
     # Init
     ###################################################################################################################################################
-    def __init__(self,server):
-        self.server = server
+    def __init__(self):
         rclpy.init(args=None)
         self.ros = RosGui()
+        
+        # Start ROS spinning in a separate thread
+        self.ros_thread = threading.Thread(target=self.spin_ros, daemon=True)
+        self.ros_thread.start()
+        
         self.OUTPUT_PATH = Path(__file__).parent
         self.ASSETS_PATH = self.OUTPUT_PATH / Path('image') 
         self.window = Tk()
@@ -95,7 +94,7 @@ class HealthMonitorApp:
         self.pagestate = False
         self.index = 0  # Start at first frame
         self.delay = 25  # Delay in milliseconds (10 FPS)
-        self.battery_percentage = 100
+        self.battery_percentage = 100  # Default battery percentage
         self.map_battery_percentage = 939 + 0.47*self.battery_percentage
         self.togglehidden_state = False
         self.load_images()
@@ -103,7 +102,15 @@ class HealthMonitorApp:
         self.canvas.tag_bind(self.emotion_image, "<Button-1>", self.on_image_click)
         self.canvas.tag_bind(self.battery, "<Button-1>", self.on_image_click)
         self.start()
-        
+    
+    def spin_ros(self):
+        """Function to spin ROS node in a separate thread"""
+        try:
+            rclpy.spin(self.ros)
+        except Exception as e:
+            print(f"ROS spin error: {e}")
+        finally:
+            rclpy.shutdown()
         
     def on_image_click(self,event):
         self.open_menu()
@@ -201,16 +208,18 @@ class HealthMonitorApp:
         self.window.mainloop()
 
     def update_emotion(self):
-        self.battery_data_received = server.recived()
-        self.battery_percentage = json.loads(self.battery_data_received)
+        # Get the battery percentage from the ROS node instead of socket
+        self.battery_percentage = self.ros.battery_percentage
         self.map_battery_percentage = 939 + 0.47*self.battery_percentage
         self.canvas.coords(self.battery_guage, 939, 19, self.map_battery_percentage, 41)
+        
         if self.vitalpage_state == False:
             self.index = (self.index + 1) % len(self.animation_images)  # Loop back to first image
             self.window.after(1,self.canvas.itemconfig(self.emotion_image, image=self.animation_images[self.index]))
             self.window.after(self.delay, self.update_emotion)  # Schedule next frame
         elif self.vitalpage_state == True:
             self.index = 0
+            # Still update battery even when in vital page
 
     def test1(self):
         self.cap_button = Button( 
@@ -580,7 +589,7 @@ class HealthMonitorApp:
         self.window.after(1,self.patient_combobox.set("SELECT PATIENT"))
         self.patient_combobox.bind("<<ComboboxSelected>>", self.on_patient_select)
         try:
-            conn = sqlite3.connect('patient_database.db')
+            conn = sqlite3.connect('/home/pannoi_db.db')
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM patients;")
             tables = cursor.fetchall()
@@ -672,13 +681,25 @@ class HealthMonitorApp:
         self.window.after(1, self.canvas.itemconfig(self.emotion_image, state="normal"))
         self.update_emotion()         
 
+        
     # Exit function
     ###################################################################################################################################################
 
     def exit_app(self, event):
+        if hasattr(self, 'ros') and self.ros is not None:
+            if hasattr(self.ros, 'destroy_node'):
+                self.ros.destroy_node()
+        
+        # Clean up ROS resources
+        if rclpy.ok():
+            try:
+                rclpy.shutdown()
+            except Exception as e:
+                print(f"Error shutting down ROS: {e}")
+                
+        self.conn.close()  # Close database connection
         self.window.destroy()
 
     ###################################################################################################################################################
 if __name__ == "__main__":
-    server = MyServer()
-    app = HealthMonitorApp(server)
+    app = HealthMonitorApp()
