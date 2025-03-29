@@ -697,7 +697,6 @@ class HealthMonitorApp:
             except Exception as e:
                 print(f"Error shutting down ROS: {e}")
                 
-        self.conn.close()  # Close database connection
         self.window.destroy()
 
     ###################################################################################################################################################
